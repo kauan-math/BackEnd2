@@ -36,4 +36,7 @@ routes.post("/cursos", cursosController.create);
 routes.put("/cursos/:id", cursosController.update)
 routes.delete("/cursos/:id", cursosController.delete)
 
+routes.put('/matricular/:id', alunosController.matricular);
+routes.delete('/desmatricular/:id', alunosController.desmatricular)
+
 export default routes;
