@@ -1,5 +1,5 @@
 
-import type { Request, Response } from "express";
+import type { Request as ExpressRequest, Response } from "express";
 import { prisma } from "../../config/prisma.js";
 import prismaErrorCodes from "../../config/prismaErrorCodes.json";
 import { Prisma } from "../../generated/prisma/client.js";
@@ -18,7 +18,7 @@ export default {
             return response.status(500).json("Unknown error. Try again later")
         }
     },
-  create: async(request: Request, response: Response) => {
+  create: async(request: ExpressRequest, response: Response) => {
         try{
             const {nome, professor, cargaHoraria, descricao} = request.body;
             const user =await prisma.cursos.create({
@@ -40,7 +40,7 @@ export default {
         }
     },
 
-  getByid: async (request: Request, response: Response) => {
+  getByid: async (request: ExpressRequest, response: Response) => {
     try {
       const { id } = request.params;
       const user = await prisma.cursos.findUnique({
@@ -57,7 +57,7 @@ export default {
       return response.status(500).json("Unkown error. Try again later");
     }
   },
-  update: async(request: Request, response: Response) => {
+  update: async(request: ExpressRequest, response: Response) => {
         try{
             const {id} = request.params
             const { nome, professor , cargaHoraria, descricao} = request.body
@@ -82,7 +82,7 @@ export default {
         }
         return response.status(500).json("Unknown error. Try again later")
     },
-  delete: async(request: Request, response: Response) => {
+  delete: async(request: ExpressRequest, response: Response) => {
         try{
             const {id} = request.params
 

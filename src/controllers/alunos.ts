@@ -2,14 +2,13 @@ import type { Request, Response } from "express";
 import { prisma } from "../../config/prisma.js";
 import prismaErrorCodes from "../../config/prismaErrorCodes.json";
 import { Prisma } from "../../generated/prisma/client.js";
-import cursos from "./cursos.js"
 
 
 export default {
     list: async (request: Request, response: Response) => {
         try{
             const users = await prisma.alunos.findMany({
-                include: {curso:true}
+                include: {cursos:true}
             });
             return response.status(200).json(users);
         }catch(e){
@@ -42,9 +41,9 @@ export default {
         }
     },
 
-  getByid: async (reqeust: Request, response: Response) => {
+  getByid: async (request: Request, response: Response) => {
     try {
-      const { id } = reqeust.params;
+      const { id } = request.params;
       const user = await prisma.alunos.findUnique({
         where: {
           id: +id,
@@ -104,11 +103,10 @@ export default {
             const user = await prisma.alunos.update({
                 where: {id: +id },
                 data: {
-                    curso:{
-                        connect: {id: 2}
-                    }
+                    curso: {
+                        connect: {id:2}
                 }
-            })
+            },        })
             return response.status(201).json(user)
         }catch(e){
             if (e instanceof Prisma.PrismaClientKnownRequestError){
@@ -124,10 +122,10 @@ export default {
             const user = await prisma.alunos.update({
                 where: {id: +id },
                 data: {
-                    curso:{
-                        disconnect: {id: 2}
-                    }
+                    curso: {
+                        disconnect: {id:2}
                 }
+            }, 
             })
             return response.status(201).json(user)
         }catch(e){
@@ -138,20 +136,4 @@ export default {
             return response.status(500).json("Unknown error. Try again later")
         }
     },
-    delete: async(request: Request, response: Response) => {
-        try{
-            const {id} = request.params
-
-            const user = await prisma.alunos.delete({where:{ id: +id}})
-
-            return response.status(200).json(user)
-        }catch(e){
-            if (e instanceof Prisma.PrismaClientKnownRequestError){
-
-            // @ts-ignore
-            return response.status(prismaErrorCodes[e.codes] || 500).json(e.message)
-        }
-        return response.status(500).json("Unknown error. Try again later")
-        }
-    }
 };
