@@ -12,6 +12,7 @@ export default {
             });
             return response.status(200).json(users);
         }catch(e){
+          console.error(e)
             if (e instanceof Prisma.PrismaClientKnownRequestError){
                 // @ts-ignore
                 return response.status(prismaErrorCodes[e.codes] || 500).json(e.message)
@@ -97,43 +98,70 @@ export default {
       return response.status(500).json("Unkown error. Try again later");
     }
   },
-  matricular: async( request: Request,response: Response) => {
-        try{
-            const {id} = request.params
-            const user = await prisma.alunos.update({
-                where: {id: +id },
-                data: {
-                    curso: {
-                        connect: {id:2}
-                }
-            },        })
-            return response.status(201).json(user)
-        }catch(e){
-            if (e instanceof Prisma.PrismaClientKnownRequestError){
-                // @ts-ignore
-                return response.status(prismaErrorCodes[e.codes] || 500).json(e.message)
-            }
-            return response.status(500).json("Unknown error. Try again later")
+  matricular: async (request: Request, response: Response) => {
+  try {
+    const { id } = request.params;
+    const { cursosIds } = request.body;
+
+    const user = await prisma.alunos.update({
+      where: { id: Number(id) },
+      data: {
+        cursos: {
+          connect: cursosIds.map((cursoId: number) => ({ id: cursoId })),
         }
-    },
-    desmatricular: async( request: Request,response: Response) => {
-        try{
-            const {id} = request.params
-            const user = await prisma.alunos.update({
-                where: {id: +id },
-                data: {
-                    curso: {
-                        disconnect: {id:2}
-                }
-            }, 
-            })
-            return response.status(201).json(user)
-        }catch(e){
-            if (e instanceof Prisma.PrismaClientKnownRequestError){
-                // @ts-ignore
-                return response.status(prismaErrorCodes[e.codes] || 500).json(e.message)
-            }
-            return response.status(500).json("Unknown error. Try again later")
+      },
+      include: {           
+        cursos: true
+      }
+    });
+
+    return response.status(201).json(user);
+
+  } catch (e: any) {
+    console.error(e);
+
+    if (e instanceof Prisma.PrismaClientKnownRequestError) {
+      // @ts-ignore
+      return response.status(prismaErrorCodes[e.code] || 500).json(e.message);
+    }
+
+    return response.status(500).json("Unknown error. Try again later");
+  }
+},
+    desmatricular: async (request: Request, response: Response) => {
+  try {
+    const { id } = request.params;
+    const { cursosIds } = request.body;
+
+    const alunoId = Number(id);
+
+
+    const aluno = await prisma.alunos.findUnique({
+      where: { id: alunoId },
+      include: { cursos: true }
+    });
+    if (!aluno) {
+      return response.status(404).json("Aluno não encontrado");
+    }
+
+    const cursosQueFicam = aluno.cursos.filter(curso => !cursosIds.includes(curso.id)).map(curso => ({ id: curso.id }));
+
+  
+    const user = await prisma.alunos.update({
+      where: { id: alunoId },
+      data: {
+        cursos: {
+          set: cursosQueFicam
         }
-    },
+      },
+      include: { cursos: true }
+    });
+
+    return response.status(200).json(user);
+
+  } catch (e: any) {
+    console.error(e);
+    return response.status(500).json("Unknown error. Try again later");
+  }
+},
 };

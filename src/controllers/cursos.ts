@@ -1,5 +1,4 @@
-
-import type { Request as ExpressRequest, Response } from "express";
+import type { Request , Response } from "express";
 import { prisma } from "../../config/prisma.js";
 import prismaErrorCodes from "../../config/prismaErrorCodes.json";
 import { Prisma } from "../../generated/prisma/client.js";
@@ -18,7 +17,7 @@ export default {
             return response.status(500).json("Unknown error. Try again later")
         }
     },
-  create: async(request: ExpressRequest, response: Response) => {
+    create: async(request: Request, response: Response) => {
         try{
             const {nome, professor, cargaHoraria, descricao} = request.body;
             const user =await prisma.cursos.create({
@@ -40,24 +39,24 @@ export default {
         }
     },
 
-  getByid: async (request: ExpressRequest, response: Response) => {
+    getByid: async (request: Request, response: Response) => {
     try {
-      const { id } = request.params;
-      const user = await prisma.cursos.findUnique({
+        const { id } = request.params;
+        const user = await prisma.cursos.findUnique({
         where: {
-          id: +id,
+            id: +id,
         },
-      });
-      return response.status(200).json(user);
+        });
+        return response.status(200).json(user);
     } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e instanceof Prisma.PrismaClientKnownRequestError) {
         // @ts-ignore
         return response.status(prismaErrorCodes[e.code] || 500).json(e.message);
-      }
-      return response.status(500).json("Unkown error. Try again later");
+        }
+        return response.status(500).json("Unkown error. Try again later");
     }
-  },
-  update: async(request: ExpressRequest, response: Response) => {
+    },
+    update: async(request: Request, response: Response) => {
         try{
             const {id} = request.params
             const { nome, professor , cargaHoraria, descricao} = request.body
@@ -82,7 +81,7 @@ export default {
         }
         return response.status(500).json("Unknown error. Try again later")
     },
-  delete: async(request: ExpressRequest, response: Response) => {
+    delete: async(request: Request, response: Response) => {
         try{
             const {id} = request.params
 
