@@ -17,6 +17,7 @@ export default {
             return response.status(500).json("Unknown error. Try again later")
         }
     },
+
     create: async(request: Request, response: Response) => {
         try{
             const {nome, professor, cargaHoraria, descricao} = request.body;
@@ -56,6 +57,7 @@ export default {
         return response.status(500).json("Unkown error. Try again later");
     }
     },
+
     update: async(request: Request, response: Response) => {
         try{
             const {id} = request.params
@@ -81,6 +83,7 @@ export default {
         }
         return response.status(500).json("Unknown error. Try again later")
     },
+    
     delete: async(request: Request, response: Response) => {
         try{
             const {id} = request.params

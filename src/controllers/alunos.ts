@@ -1,28 +1,17 @@
 import type { Request, Response } from "express";
 import { prisma } from "../../config/prisma.js";
-import prismaErrorCodes from "../../config/prismaErrorCodes.json";
-import { Prisma } from "../../generated/prisma/client.js";
+import { handleError } from "../../helpers/handleError.js";
 
 
 export default {
-    list: async (request: Request, response: Response) => {
-        try{
-            const users = await prisma.alunos.findMany({
-                include: {cursos:true}
-            });
-            return response.status(200).json(users);
-        }catch(e){
-          console.error(e)
-            if (e instanceof Prisma.PrismaClientKnownRequestError){
-                // @ts-ignore
-                return response.status(prismaErrorCodes[e.codes] || 500).json(e.message)
-            }
-            return response.status(500).json("Unknown error. Try again later")
-        }
-    },
   create: async( request: Request,response: Response) => {
         try{
             const {nome, email, idade, cpf} = request.body;
+
+            if (!nome || !email || !idade || !cpf){
+                return response.status(400).json({error: "Dados do Aluno incompletos"})
+            }
+
             const user = await prisma.alunos.create({
                 data: {
                     nome,
@@ -34,11 +23,18 @@ export default {
             console.log("Usuário criado.");
             return response.status(201).json(user);
         } catch(e: any){
-            if (e instanceof Prisma.PrismaClientKnownRequestError){
-                // @ts-ignore
-                return response.status(prismaErrorCodes[e.codes] || 500).json(e.message)
-            }
-            return response.status(500).json("Unknown error. Try again later")
+            return handleError(e, response);
+        }
+    },
+    
+    list: async (request: Request, response: Response) => {
+        try{
+            const users = await prisma.alunos.findMany({
+                include: {cursos:true}
+            });
+            return response.status(200).json(users);
+        }catch(e){
+            return handleError(e, response);
         }
     },
 
@@ -52,13 +48,10 @@ export default {
       });
       return response.status(200).json(user);
     } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        // @ts-ignore
-        return response.status(prismaErrorCodes[e.code] || 500).json(e.message);
-      }
-      return response.status(500).json("Unkown error. Try again later");
+      return handleError(e, response);
     }
   },
+
   update: async (request: Request, response: Response) => {
     try {
       const { id } = request.params;
@@ -74,13 +67,10 @@ export default {
       });
       return response.status(200).json(user);
     } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        // @ts-ignore
-        return response.status(prismaErrorCodes[e.code] || 500).json(e.message);
-      }
-      return response.status(500).json("Unkown error. Try again later");
+      return handleError(e, response);
     }
   },
+
   delete: async (request: Request, response: Response) => {
     try {
       const { id } = request.params;
@@ -91,18 +81,14 @@ export default {
       });
       return response.status(200).json(user);
     } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        // @ts-ignore
-        return response.status(prismaErrorCodes[e.code] || 500).json(e.message);
-      }
-      return response.status(500).json("Unkown error. Try again later");
+      return handleError(e, response);
     }
   },
+
   matricular: async (request: Request, response: Response) => {
   try {
     const { id } = request.params;
     const { cursosIds } = request.body;
-
     const user = await prisma.alunos.update({
       where: { id: Number(id) },
       data: {
@@ -114,28 +100,17 @@ export default {
         cursos: true
       }
     });
-
     return response.status(201).json(user);
-
   } catch (e: any) {
-    console.error(e);
-
-    if (e instanceof Prisma.PrismaClientKnownRequestError) {
-      // @ts-ignore
-      return response.status(prismaErrorCodes[e.code] || 500).json(e.message);
-    }
-
-    return response.status(500).json("Unknown error. Try again later");
+    return handleError(e, response);
   }
 },
+
     desmatricular: async (request: Request, response: Response) => {
   try {
     const { id } = request.params;
     const { cursosIds } = request.body;
-
     const alunoId = Number(id);
-
-
     const aluno = await prisma.alunos.findUnique({
       where: { id: alunoId },
       include: { cursos: true }
@@ -143,10 +118,7 @@ export default {
     if (!aluno) {
       return response.status(404).json("Aluno não encontrado");
     }
-
     const cursosQueFicam = aluno.cursos.filter(curso => !cursosIds.includes(curso.id)).map(curso => ({ id: curso.id }));
-
-  
     const user = await prisma.alunos.update({
       where: { id: alunoId },
       data: {
@@ -156,12 +128,9 @@ export default {
       },
       include: { cursos: true }
     });
-
     return response.status(200).json(user);
-
   } catch (e: any) {
-    console.error(e);
-    return response.status(500).json("Unknown error. Try again later");
+    return handleError(e, response);
   }
 },
 };

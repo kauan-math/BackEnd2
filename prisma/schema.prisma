@@ -34,3 +34,12 @@ model Cursos {
   updatedAt     DateTime @updatedAt
 }
 
+model Funcionarios {
+  id        Int @id @default(autoincrement())
+  nome      String
+  email     String @unique
+  senha     String
+  admin     Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
